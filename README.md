@@ -18,7 +18,7 @@ I also suggest to stop any other docker containers or unnecessary services runni
 
 I am going to be using DevNet Expert CWS in this example but process will be same for Ubuntu 20.04.
 
-#### Step1: Download the minikube (1.23) or latest
+#### Step1: Download minikube (v1.23) or latest
 
 Since, I am learning for DevNet Expert, I am going to download the v1.23 as mentioned in the DevNet Expert equipment list [here](https://learningnetwork.cisco.com/s/article/devnet-expert-equipment-and-software-list), but you can download the latest version if you like by replacing `v.1.23.2` with `latest` keyword in the follwing curl command. 
 
@@ -272,7 +272,7 @@ $ minikube dashboard --url -p minikube
 
 ![App Screenshot](images/minikube_dashboard.png)
 
-I have create other other markdown file to document some useful definitions and Kubctl command. I will also be adding how to deploy and application Deployment, Services, Secret, Config map etc using the K8s yaml config files.
+I have created other markdown files to document some useful definitions and Kubctl commands. I will also be adding how to deploy and application pods, deployments, secrets, services, ingress, volumes, namespaces, and replica sets etc using the K8s yaml config files.
 
 ## References
 
