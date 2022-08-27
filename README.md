@@ -155,6 +155,22 @@ serverVersion:
 (main) expert@expert-cws:~$ 
 ```
 
+```bash
+(main) expert@expert-cws:~$ kubectl version --client --output=yaml  
+clientVersion:
+  buildDate: "2022-01-25T21:25:17Z"
+  compiler: gc
+  gitCommit: 816c97ab8cff8a1c72eccca1026f7820e93e0d25
+  gitTreeState: clean
+  gitVersion: v1.23.3
+  goVersion: go1.17.6
+  major: "1"
+  minor: "23"
+  platform: linux/amd64
+
+(main) expert@expert-cws:~$ 
+```
+
 Check the node, it should be one node cluster which acts as master as well as worker
 
 ```bash
