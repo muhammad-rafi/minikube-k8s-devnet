@@ -16,9 +16,12 @@ I also suggest to stop any other docker containers or unnecessary services runni
 
 Besides the Minikube, there are some other easy ways to get started with Kubernestes, though I found Minikube a simple solution to start with K8s, however you can try any of these out too. 
 
-- Kubeadm
-- Kind
-- K3S
+- [Kind](https://kind.sigs.k8s.io/)
+- [Kubeadm](https://github.com/kubernetes/kubeadm)
+- [k3s](https://github.com/k3s-io/k3s)
+- [Autok3s](https://github.com/cnrancher/autok3s)
+- [K0s](https://github.com/k0sproject/k0s)
+- [MicroK8s](https://github.com/ubuntu/microk8s)
 
 ## Minikube Installation on DevNet Expert CWS (Candidate Work Station)
 
@@ -94,6 +97,19 @@ Check out this [link](https://minikube.sigs.k8s.io/docs/drivers/) for minikube d
 🏄  Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
 (main) expert@expert-cws:~$ 
 ```
+Minukube starts with 2 vCPU and 2048 memory along with docker driver by default if you have docker installed otherwise virtualbox. However, you can override defaults by explicitly specifying the custom CPU, memory and driver as below.
+
+```
+$ minikube start --driver=virtualbox --memory 4096 --cpus 4
+```
+
+You can also edit existing minikube 
+```
+$ minikube stop
+$ minikube config set memory 4096
+$ minikube config set cpus 4
+$ minikube start
+```
 
 There you go, now you have it minikube installed on your system and you can enjoy running the Kubernetes like a captain 😄. But wait there is more stuff coming along. 
 
@@ -121,6 +137,28 @@ kubeconfig: Configured
 (main) expert@expert-cws:~$ kubectl config get-contexts
 CURRENT   NAME       CLUSTER    AUTHINFO   NAMESPACE
 *         minikube   minikube   minikube   default
+```
+
+```bash
+(main) expert@expert-cws:~$ minikube service list
+|----------------------|---------------------------|--------------|-----|
+|      NAMESPACE       |           NAME            | TARGET PORT  | URL |
+|----------------------|---------------------------|--------------|-----|
+| default              | kubernetes                | No node port |
+| kube-system          | kube-dns                  | No node port |
+| kubernetes-dashboard | dashboard-metrics-scraper | No node port |
+| kubernetes-dashboard | kubernetes-dashboard      | No node port |
+|----------------------|---------------------------|--------------|-----|
+```
+
+```bash
+(main) expert@expert-cws:~$ minikube profile list
+|----------|-----------|---------|--------------|------|---------|---------|-------|
+| Profile  | VM Driver | Runtime |      IP      | Port | Version | Status  | Nodes |
+|----------|-----------|---------|--------------|------|---------|---------|-------|
+| minikube | docker    | docker  | 192.168.49.2 | 8443 | v1.22.2 | Running |     1 |
+|----------|-----------|---------|--------------|------|---------|---------|-------|
+(main) expert@expert-cws:~$ 
 ```
 
 ```bash
@@ -361,13 +399,11 @@ volumeattachments                              storage.k8s.io/v1                
 
 ## References
 
-- Minikube Documentation
+[Minikube Documentation](https://minikube.sigs.k8s.io/docs/)
 
-https://minikube.sigs.k8s.io/docs/
+[Kubernetes Documentation](https://kubernetes.io/docs/home/)
 
-- Kubernetes Documentation
-
-https://kubernetes.io/docs/home/
+[Learn Kubernetes Basics](https://kubernetes.io/docs/tutorials/kubernetes-basics/_print/)
 
 ## Author
 

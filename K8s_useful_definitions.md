@@ -37,6 +37,9 @@ You describe a desired state in a Deployment, and the Deployment Controller chan
 ### ReplicaSet
 A ReplicaSet's purpose is to maintain a stable set of replica Pods running at any given time. As such, it is often used to guarantee the availability of a specified number of identical Pods.
 
+### DaemonSet
+A DaemonSet ensures that all (or some) Nodes run a copy of a Pod. As nodes are added to the cluster, Pods are added to them. As nodes are removed from the cluster, those Pods are garbage collected. Deleting a DaemonSet will clean up the Pods it created.
+
 ### Service
 An abstract way to expose an application running on a set of Pods as a network service.
 With Kubernetes you don't need to modify your application to use an unfamiliar service discovery mechanism. Kubernetes gives Pods their own IP addresses and a single DNS name for a set of Pods, and can load-balance across them.
@@ -77,6 +80,4 @@ A ConfigMap allows you to decouple environment-specific configuration from your 
 [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 
 [Learn Kubernetes Basics](https://kubernetes.io/docs/tutorials/kubernetes-basics/)
-
-[An Ultimate Kubernetes Hands-on Labs and Tutorials](https://collabnix.github.io/kubelabs/)
 
