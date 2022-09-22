@@ -170,7 +170,6 @@ $ kubectl describe <resource> <resource-name>
 
 You can also use the short name for the Kubernetes resources, here are the list of resources with full and short names, run `kubectl api-resources` to get the short names.
 
-| -------------------------------------------------------- |
 |   K8s Resources Full Name   |   K8s Resources Full Name  | 
 |---------------------------- | -------------------------- | 
 | namespaces                  |  ns                        | 
@@ -195,7 +194,6 @@ You can also use the short name for the Kubernetes resources, here are the list 
 | podsecuritypolicies         |  psp                       | 
 | resourcequotas              |  quota                     | 
 | serviceaccounts             |  sa                        | 
-| -------------------------------------------------------- |
 
 ### References
 
