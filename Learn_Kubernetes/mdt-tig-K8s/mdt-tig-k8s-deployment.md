@@ -63,7 +63,7 @@ CURRENT   NAME       CLUSTER    AUTHINFO   NAMESPACE
 
 You can you also use `$ kubectl config vieww` to see the full Kubectl config.
 
-## InfluxDB POD Setup on Kubernetes
+## InfluxDB POD Setup in Kubernetes
 
 As you know InfluxDB is one of the main componenet in TIG stakc, we will deploy this first, but before we deploy, we need to look at the K8s resources we need to run a InfluxDB container in Kubernestes.
 
@@ -370,6 +370,8 @@ metadata:
     app: influxdb
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: influxdb
@@ -523,7 +525,7 @@ Events:            <none>
 (main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 ```
 
-## Telegraf POD Setup on Kubernetes
+## Telegraf POD Setup in Kubernetes
 
 Telegraf is a collector in TIG stack, that needs to connect to InfluxDB to send the collected logs to be stored in time series database. 
 
@@ -595,7 +597,7 @@ data:
     [[outputs.influxdb]]
       database = "cisco_mdt"
       urls = [ "http://influxdb-service:8086" ]
-      username = "admin"
+      username = "root"
       password = "telegraf"
 
     # Telegraf log file 
@@ -675,6 +677,9 @@ metadata:
   labels:
     app: telegraf
 spec:
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: telegraf
@@ -684,37 +689,37 @@ spec:
         app: telegraf
     spec:
       containers:
-          - name: telegraf
-            image: docker.io/telegraf:1.19.0
-          # envFrom: # if you like to use Telgraf SecretMap instead of InfluxDB SecretMap
-          #   - secretRef:
-          #       name: telegraf-secrets
-          env:
-            - name: INFLUXDB_ADMIN_USER
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secrets
-                  key: INFLUXDB_ADMIN_USER
-            - name: INFLUXDB_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secrets
-                  key: INFLUXDB_ADMIN_PASSWORD
-            - name: INFLUXDB_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secrets
-                  key: INFLUXDB_HOST
-            - name: INFLUXDB_DB
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secrets
-                  key: INFLUXDB_DB
-          volumeMounts:
-            - name: telegraf-config
-              mountPath: /etc/telegraf/telegraf.conf
-              subPath: telegraf.conf
-              readOnly: true
+        - name: telegraf
+          image: docker.io/telegraf:1.19.0
+        # envFrom: # if you like to use Telgraf SecretMap instead of InfluxDB SecretMap
+        #   - secretRef:
+        #       name: telegraf-secrets
+        env:
+          - name: INFLUXDB_ADMIN_USER
+            valueFrom:
+              secretKeyRef:
+                name: influxdb-secrets
+                key: INFLUXDB_ADMIN_USER
+          - name: INFLUXDB_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: influxdb-secrets
+                key: INFLUXDB_ADMIN_PASSWORD
+          - name: INFLUXDB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: influxdb-secrets
+                key: INFLUXDB_HOST
+          - name: INFLUXDB_DB
+            valueFrom:
+              secretKeyRef:
+                name: influxdb-secrets
+                key: INFLUXDB_DB
+        volumeMounts:
+          - name: telegraf-config
+            mountPath: /etc/telegraf/telegraf.conf
+            subPath: telegraf.conf
+            readOnly: true
       volumes:
         - name: telegraf-config
           configMap:
@@ -723,11 +728,243 @@ spec:
 
 Let's apply DaemonSet for the Telegraf
 
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f telegraf-daemonSet.yaml 
+daemonset.apps/telegraf created
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods
+NAME                        READY   STATUS              RESTARTS   AGE
+influxdb-5d65548dc5-r84fk   1/1     Running             0          14m
+telegraf-mwfsb              0/1     ContainerCreating   0          7s
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+influxdb-5d65548dc5-r84fk   1/1     Running   0          16m
+telegraf-mwfsb              1/1     Running   0          2m9s
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
 
+Check the logs if you see any errors 
 
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl logs telegraf-mwfsb 
+2022-09-26T11:17:25Z I! Starting Telegraf 1.19.0
+2022-09-26T11:17:25Z I! Using config file: /etc/telegraf/telegraf.conf
+2022-09-26T11:17:25Z I! Loaded inputs: cisco_telemetry_mdt
+2022-09-26T11:17:25Z I! Loaded aggregators: 
+2022-09-26T11:17:25Z I! Loaded processors: 
+2022-09-26T11:17:25Z I! Loaded outputs: file influxdb
+2022-09-26T11:17:25Z I! Tags enabled: host=telegraf-server
+2022-09-26T11:17:25Z I! [agent] Config: Interval:15s, Quiet:false, Hostname:"telegraf-server", Flush Interval:15s
+2022-09-26T11:17:25Z W! [outputs.influxdb] When writing to [http://influxdb-service:8086]: database "cisco_mdt" creation failed: 401 Unauthorized
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
+
+We are seeing the `401 Unauthorized` to access the influxdb-service, which means there is an issue with credetials. 
+
+Looks I assinged the wrong user 'admin' in the above ConfigMap for Telegraf, I just changed the `admin` user to the `root` user which fixed the issue.
+
+Here is what I did to fix the issue
+
+- Delete the configMap 
+- Changed the admin user to root user 
+- Delete old pod 
+- Create new configMap 
+- Create new POD for Telegraf
+
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl delete configmap telegraf-config
+configmap "telegraf-config" deleted
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ vi telegraf-configMap.yaml 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl delete pod telegraf-mwfsb
+pod "telegraf-mwfsb" deleted
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f telegraf-configMap.yaml 
+configmap/telegraf-config created
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f telegraf-daemonSet.yaml 
+daemonset.apps/telegraf unchanged
+```
+
+Now no more errors are seen in the telegraf pod log
+
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+influxdb-5d65548dc5-r84fk   1/1     Running   0          26m
+telegraf-tcsb8              1/1     Running   0          55s
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl logs telegraf-tcsb8 
+2022-09-26T11:28:59Z I! Starting Telegraf 1.19.0
+2022-09-26T11:28:59Z I! Using config file: /etc/telegraf/telegraf.conf
+2022-09-26T11:28:59Z I! Loaded inputs: cisco_telemetry_mdt
+2022-09-26T11:28:59Z I! Loaded aggregators: 
+2022-09-26T11:28:59Z I! Loaded processors: 
+2022-09-26T11:28:59Z I! Loaded outputs: file influxdb
+2022-09-26T11:28:59Z I! Tags enabled: host=telegraf-server
+2022-09-26T11:28:59Z I! [agent] Config: Interval:15s, Quiet:false, Hostname:"telegraf-server", Flush Interval:15s
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
+
+if you have created a deployment, you can expose the port by create a service as below
+
+```s
+kubectl expose deployment telegraf --port=8125 --target-port=8125 --protocol=UDP --type=NodePort --dry-run=client -o yaml > telegraf-service.yaml
+```
 
 ```s
 kubectl expose deployment telegraf --port=8125 --target-port=8125 --protocol=UDP --type=NodePort
 ```
 
-kubectl expose deployment telegraf --port=8125 --target-port=8125 --protocol=UDP --type=NodePort --dry-run=client -o yaml > telegraf-service.yaml
+## Grafana POD Setup in Kubernetes
+
+Grafana is the final peiece in TIG stack and will again require following K8s componenets
+
+- SecretMap
+- PersistentVolumeClaim
+- Deployment
+- Service
+
+#### Create Grafana SecretMap
+
+kubectl create secret generic grafana-secrets \                      
+  --from-literal=GF_SECURITY_ADMIN_USER=admin \
+  --from-literal=GF_SECURITY_ADMIN_PASSWORD=admin
+
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl create secret generic grafana-secrets \
+> --from-literal=GF_SECURITY_ADMIN_USER=admin \
+> --from-literal=GF_SECURITY_ADMIN_PASSWORD=admin
+secret/grafana-secrets created
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get secret
+NAME                  TYPE                                  DATA   AGE
+default-token-jwxp7   kubernetes.io/service-account-token   3      3d13h
+grafana-secrets       Opaque                                2      31s
+influxdb-secrets      Opaque                                8      10h
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe secret grafana-secrets
+Name:         grafana-secrets
+Namespace:    devnet-namespace
+Labels:       <none>
+Annotations:  <none>
+
+Type:  Opaque
+
+Data
+====
+GF_SECURITY_ADMIN_PASSWORD:  5 bytes
+GF_SECURITY_ADMIN_USER:      5 bytes
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
+
+Notice the Namespace is already assinged as `devnet-namespace` because I am using this namespace as a default, however if you do not, then you will have to provide `-n devnet-namespace` option with above command unless you are not using the namespace at all and relying on only default one. 
+
+```bash
+kubectl create secret generic grafana-secrets \                      
+  --from-literal=GF_SECURITY_ADMIN_USER=admin \
+  --from-literal=GF_SECURITY_ADMIN_PASSWORD=admin \
+  -n devnet-namespace
+```
+
+#### Create Grafana PersistentVolumeClaim
+
+```yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: devnet-namespace
+  name: grafana-pvc
+  labels:
+    app: grafana-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+```
+
+kubectl apply -f grafana-pvc.yaml
+
+
+#### Create Grafana Deployment
+
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: devnet-namespace
+  name: grafana
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        restartPolicy: Always
+        - name: grafana
+            image: docker.io/grafana/grafana:8.1.0-ubuntu
+            imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: grafana-secrets
+          volumeMounts:
+            - name: grafana-data
+              mountPath: /var/lib/grafana/
+      securityContext:
+        fsGroup: 472      
+    volumes:
+      - name: grafana-data
+        persistentVolumeClaim:
+          claimName: grafana-pvc
+```
+
+kubectl apply -f grafana-deployment.yaml
+
+
+#### Create Grafana Service
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: devnet-namespace
+  name: grafana-service
+spec:
+  selector:
+    app: grafana
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30000
+```
+
+kubectl apply -f grafana-service.yaml
+
+
+kubectl expose deployment grafana --type=LoadBalancer --port=3000 --target-port=3000 --protocol=TCP
+
+minikube service grafana --namespace devnet-namespace
+
