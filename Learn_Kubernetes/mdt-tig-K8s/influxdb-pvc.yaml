@@ -15,4 +15,4 @@ spec:
   selector:
     matchLabels:
       component: influxdb-pv
-  storageClassName: "mdt-tig-storage" # If you have storageClass to dynamically create PV
+  # storageClassName: "mdt-tig-storage" # If you have storageClass to dynamically create PV
