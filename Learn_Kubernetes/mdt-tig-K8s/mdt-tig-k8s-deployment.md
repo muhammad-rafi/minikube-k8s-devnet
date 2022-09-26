@@ -167,18 +167,18 @@ metadata:
 Let's create secretMap using this file called 'influxdb-secretMap.yaml'
 
 ```bash
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-secretMap.yaml
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-secretMap.yaml
 secret/influxdb-secrets created
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl get secrets -o wide
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get secrets -o wide
 NAME                  TYPE                                  DATA   AGE
 default-token-jwxp7   kubernetes.io/service-account-token   3      3d2h
 influxdb-secrets      Opaque                                8      2m4s
 ```
 
 ```bash
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl describe secrets influxdb-secrets
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe secrets influxdb-secrets
 Name:         influxdb-secrets
 Namespace:    devnet-namespace
 Labels:       <none>
@@ -196,7 +196,7 @@ INFLUXDB_HOST:               8 bytes
 INFLUXDB_HTTP_AUTH_ENABLED:  4 bytes
 INFLUXDB_USER:               6 bytes
 INFLUXDB_USER_PASSWORD:      8 bytes
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 ```
 
 You can also use `$ kubectl get secrets -o yaml` to see the output in yaml format.
@@ -219,11 +219,11 @@ data:
 ```
 
 ```bash
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-configMap.yaml 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-configMap.yaml 
 configmap/influxdb-config created
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl get configmap
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get configmap
 NAME               DATA   AGE
 influxdb-config    1      75s
 kube-root-ca.crt   1      3d2h
@@ -291,16 +291,16 @@ spec:
 If your storageClass doesn't exist, it will fallback to the static PersistenVolume.
 
 ```bash
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-pvc.yaml 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-pvc.yaml 
 persistentvolumeclaim/influxdb-pvc created
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl get pvc
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pvc
 NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 influxdb-pvc   Bound    pvc-667d5801-a3c8-4083-a4fb-c6921fae4aed   5Gi        RWO            standard       3s
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl describe pv
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe pv
 Name:            pvc-667d5801-a3c8-4083-a4fb-c6921fae4aed
 Labels:          <none>
 Annotations:     hostPathProvisionerIdentity: 95ef24d0-67cd-4cfc-a3bd-b5e672aa7631
@@ -321,7 +321,7 @@ Source:
     HostPathType:  
 Events:            <none>
 
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl describe pvc
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe pvc
 Name:          influxdb-pvc
 Namespace:     devnet-namespace
 StorageClass:  standard
@@ -337,7 +337,7 @@ Access Modes:  RWO
 VolumeMode:    Filesystem
 Used By:       influxdb-5d65548dc5-td5f7
 Events:        <none>
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 ```
 
 We also verify this path in the minikube `/tmp/hostpath-provisioner/devnet-namespace/influxdb-pvc`
@@ -345,7 +345,7 @@ We also verify this path in the minikube `/tmp/hostpath-provisioner/devnet-names
 Login to the Minikube and find this location
 
 ```bash
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ minikube ssh 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ minikube ssh 
 Last login: Mon Sep 26 09:38:33 2022 from 192.168.49.1
 docker@minikube:~$ sudo ls -l /tmp/hostpath-provisioner/devnet-namespace/influxdb-pvc/               
 total 12
@@ -405,24 +405,33 @@ spec:
 ```
 
 ```bash
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl get pods
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-deployment.yaml 
+deployment.apps/influxdb created
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods
 NAME                        READY   STATUS    RESTARTS   AGE
-influxdb-5d65548dc5-td5f7   1/1     Running   0          14s
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ 
+influxdb-5d65548dc5-r84fk   1/1     Running   0          33s
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 ```
 
 To see more details about this pod
-`$ kubectl describe pods influxdb-5d65548dc5-td5f7`
+`$ kubectl describe pods influxdb-5d65548dc5-r84fk`
 
 To login to the pod and verify
 
-`kubectl exec -it influxdb-5d65548dc5-td5f7 -- /bin/bash`
+`kubectl exec -it influxdb-5d65548dc5-r84fk -- /bin/bash`
 
 ```bash
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl exec -it influxdb-5d65548dc5-td5f7 -- /bin/bash
-root@influxdb-5d65548dc5-td5f7:/# ls -l /var/lib/influxdb/
-data/ meta/ wal/  
-root@influxdb-5d65548dc5-td5f7:/# cat /etc/influxdb/influxdb.conf 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl exec -it influxdb-5d65548dc5-r84fk -- /bin/bash
+root@influxdb-5d65548dc5-r84fk:/# ls -l /var/lib/influxdb/
+total 12
+drwxr-xr-x 3 root root 4096 Sep 26 01:22 data
+drwxr-xr-x 2 root root 4096 Sep 26 01:22 meta
+drwx------ 3 root root 4096 Sep 26 01:22 wal
+root@influxdb-5d65548dc5-r84fk:/# 
+
+root@influxdb-5d65548dc5-r84fk:/# cat /etc/influxdb/influxdb.conf 
 reporting-disabled = false
 bind-address = "127.0.0.1:8088"
 
@@ -436,14 +445,16 @@ bind-address = "127.0.0.1:8088"
   index-version = "inmem"
   wal-dir = "/var/lib/influxdb/wal"
   wal-fsync-delay = "0s"
-
+  query-log-enabled = true
+  cache-max-memory-size = 1073741824
+  cache-snapshot-memory-size = 26214400
 ... omitted
 ```
 
 `influx --username root --password telegraf`
 
 ```bash
-root@influxdb-5d65548dc5-td5f7:/# influx --username root --password telegraf
+root@influxdb-5d65548dc5-r84fk:/# influx --username root --password telegraf
 Connected to http://localhost:8086 version 1.8.10
 InfluxDB shell version: 1.8.10
 > show databases
@@ -457,6 +468,8 @@ Using database cisco_mdt
 > show measurements
 > 
 ```
+
+As you can see, we are successfully login to the influxDB with the root credentials and database exists. 
 
 #### Create InfluxDB Service
 
@@ -484,12 +497,14 @@ kubectl expose deployment influxdb-service --port=8086 --target-port=8086 --prot
 ```
 
 ```bash
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-service.yaml 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-service.yaml 
 service/influxdb-service created
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl get svc
-NAME           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
-influxdb-service   ClusterIP   10.103.148.199   <none>        8086/TCP   3s
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ kubectl describe svc influxdb-service
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get service
+NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+influxdb-service   ClusterIP   10.106.144.201   <none>        8086/TCP   2s
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe svc influxdb-service
 Name:              influxdb-service
 Namespace:         devnet-namespace
 Labels:            <none>
@@ -498,14 +513,14 @@ Selector:          app=influxdb
 Type:              ClusterIP
 IP Family Policy:  SingleStack
 IP Families:       IPv4
-IP:                10.103.148.199
-IPs:               10.103.148.199
+IP:                10.106.144.201
+IPs:               10.106.144.201
 Port:              <unset>  8086/TCP
 TargetPort:        8086/TCP
 Endpoints:         172.17.0.5:8086
 Session Affinity:  None
 Events:            <none>
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn Kubernetes/mdt-tig-K8s$ 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 ```
 
 ## Telegraf POD Setup on Kubernetes
@@ -588,7 +603,65 @@ data:
       files = ["/var/log/telegraf/telegraf.log"] 
 ```
 
-#### Create Telegraf ConfigMap
+Let's apply ConfigMap 
+
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f telegraf-configMap.yaml 
+configmap/telegraf-config created
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get configmap
+NAME               DATA   AGE
+influxdb-config    2      9h
+kube-root-ca.crt   1      3d13h
+telegraf-config    1      9s
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe configmap telegraf-config
+Name:         telegraf-config
+Namespace:    devnet-namespace
+Labels:       app=telegraf
+Annotations:  <none>
+
+Data
+====
+telegraf.conf:
+----
+###############################################################################
+#                      Global Agent Configuration                             #
+###############################################################################
+[agent]
+  hostname = "telegraf-server"
+  flush_interval = "15s"
+  interval = "15s"
+
+###############################################################################
+#                       gRPC Dial-Out Telemetry Listener                      #
+###############################################################################
+[[inputs.cisco_telemetry_mdt]]
+  transport = "grpc"
+  service_address = ":57000"
+  # tls_cert = "/etc/telegraf/ssl/server.cert"
+  # tls_key = "/etc/telegraf/ssl/server.key"
+
+###############################################################################
+#                   Output Plugin InfluxDB for gRPC dial-out mdt              #
+###############################################################################
+[[outputs.influxdb]]
+  database = "cisco_mdt"
+  urls = [ "http://influxdb-service:8086" ]
+  username = "admin"
+  password = "telegraf"
+
+# Telegraf log file 
+[[outputs.file]]
+  files = ["/var/log/telegraf/telegraf.log"] 
+
+
+BinaryData
+====
+
+Events:  <none>
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
+
+#### Create Telegraf DaemonSet
 
 We will create DaemonSet instead of Deployment resource as one of the benefit of using DaemonSet is that, it will create a POD automatically when a new node is added to the cluster. However you can still use deployment as well as we are only using minikube with a single node. 
 
@@ -648,7 +721,8 @@ spec:
             name: telegraf-config
 ```
 
-Let's apply ConfigMap, DaemonSet for the Telegraf
+Let's apply DaemonSet for the Telegraf
+
 
 
 
