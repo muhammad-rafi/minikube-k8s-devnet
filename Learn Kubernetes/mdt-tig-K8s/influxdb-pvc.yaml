@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: devnet-namespace
+  name: influxdb-pvc
+  labels:
+    app: influxdb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce # ReadWriteMany if you have multiple nodes
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      component: influxdb-pv
+  storageClassName: "mdt-tig-storage" # If you have storageClass to dynamically create PV

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    team: netdevops
+    app: nginx-server
+  namespace: devnet-namespace
+  annotations:
+    monitoring: true
+    pod: true
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    name: nginx-pod
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - image: nginx-container
+          name: nginx:latest
+          ports:
+            - containerPort: 80
+              resources:
+                limits:
+                  memory: "2Gi"
+                  cpu: "1000m"
+                requests: 
+                  memory: "1Gi"
+                  cpu: "500m"

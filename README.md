@@ -397,6 +397,46 @@ volumeattachments                              storage.k8s.io/v1                
 (main) expert@expert-cws:~$ 
 ```
 
+To Login to your minukube container 
+
+`$ minikube ssh`
+```bash
+(main) expert@expert-cws:~$ minikube ssh
+Last login: Sun Sep 25 10:56:01 2022 from 192.168.49.1
+docker@minikube:~$ ls -la /
+total 80
+drwxr-xr-x   1 root root 4096 Aug 22 17:12 .
+drwxr-xr-x   1 root root 4096 Aug 22 17:12 ..
+-rwxr-xr-x   1 root root    0 Aug 22 17:12 .dockerenv
+-rw-r--r--   1 root root 1093 Sep 16  2021 Release.key
+lrwxrwxrwx   1 root root    7 Apr  1  2021 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Apr 15  2020 boot
+drwxr-xr-x   2 root root 4096 Aug 22 17:12 data
+drwxr-xr-x  15 root root 4000 Sep 22 10:43 dev
+-rw-r--r--   1 root root 3817 Sep 16  2021 docker.key
+drwxr-xr-x   1 root root 4096 Sep 22 10:43 etc
+drwxr-xr-x   1 root root 4096 Sep 16  2021 home
+-rw-r--r--   1 root root   96 Sep 16  2021 kic.txt
+drwxr-xr-x   1 root root 4096 Aug 22 17:12 kind
+lrwxrwxrwx   1 root root    7 Apr  1  2021 lib -> usr/lib
+lrwxrwxrwx   1 root root    9 Apr  1  2021 lib32 -> usr/lib32
+lrwxrwxrwx   1 root root    9 Apr  1  2021 lib64 -> usr/lib64
+lrwxrwxrwx   1 root root   10 Apr  1  2021 libx32 -> usr/libx32
+drwxr-xr-x   2 root root 4096 Apr  1  2021 media
+drwxr-xr-x   2 root root 4096 Apr  1  2021 mnt
+drwxr-xr-x   1 root root 4096 Aug 22 17:12 opt
+dr-xr-xr-x 429 root root    0 Sep 22 10:43 proc
+drwx------   1 root root 4096 Aug 22 17:13 root
+drwxr-xr-x  12 root root  340 Sep 22 10:43 run
+lrwxrwxrwx   1 root root    8 Apr  1  2021 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Apr  1  2021 srv
+dr-xr-xr-x  13 root root    0 Sep 22 10:43 sys
+drwxrwxrwt   5 root root  140 Sep 22 10:43 tmp
+drwxr-xr-x   1 root root 4096 Sep 16  2021 usr
+drwxr-xr-x  14 root root 4096 Aug 22 17:12 var
+docker@minikube:~$ 
+```
+
 ## References
 
 [Minikube Documentation](https://minikube.sigs.k8s.io/docs/)

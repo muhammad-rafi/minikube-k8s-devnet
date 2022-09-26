@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-replicaset
+  labels:
+    team: netdevops
+    app: nginx-server
+  namespace: devnet-namespace
+  annotations:
+    monitoring: true
+    pod: true
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    name: nginx-pod
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - image: nginx-container
+          name: nginx:latest
+          ports:
+            - containerPort: 80
