@@ -437,6 +437,11 @@ drwxr-xr-x  14 root root 4096 Aug 22 17:12 var
 docker@minikube:~$ 
 ```
 
+If you like to practice with Kubernestes and do not have any setup, you can these playground.
+
+[Killercoda](https://killercoda.com/playgrounds/scenario/kubernetes)
+[Play with Kubernetes](https://labs.play-with-k8s.com/)
+
 ## References
 
 [Minikube Documentation](https://minikube.sigs.k8s.io/docs/)

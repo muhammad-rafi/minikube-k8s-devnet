@@ -1,17 +1,17 @@
-
+# Telegraf, InfluxDB, & Grafana (TIG) Stack on Kubernetes
 
 - InfluxDB -v1.8
 - Telegraf - v1.19
 - Grafana - v8.1
 
-
-### Create a new folder for configuration (menifest)
+### Create a new folder for configuration (menifest) files.
 
 Let's create a new folder and `cd` into it, where we can put all the required Kubernetes configuration files to successfully run the TIG stack for model driven telemetry with Cisco devices.
 
+```bash
 (main) expert@expert-cws:~$ mkdir mdt-tig-k8s && cd mdt-tig-k8s
 (main) expert@expert-cws:~/mdt-tig-k8s$ 
-
+```
 
 I am creating new namespace 'devnet-namespace' but you can use default namespace as well.
 
@@ -49,7 +49,7 @@ metadata:
   name: devnet-namespace
 ```
 
-As you can see from the above output we have a new 'devnet-namespace' and currently default namespace is a default, for the ease of this toturial, I am going to make 'devnet-namespace' as default namespace, so we don't have to provide '-n devnet-namespace' flag for the command we run. If you are using a default namespace, you can feel free to skip this step.
+As you can see from the above output we have a new 'devnet-namespace' and currently default namespace is a default, for the ease of this toturial, I am going to make 'devnet-namespace' as default namespace, so we don't have to provide '-n devnet-namespace' flag for every command we run. If you are using a default namespace, you can feel free to skip this step.
 
 ```bash
 (main) expert@expert-cws:~$ kubectl config set-context --current --namespace=devnet-namespace
@@ -65,7 +65,7 @@ You can you also use `$ kubectl config vieww` to see the full Kubectl config.
 
 ## InfluxDB POD Setup in Kubernetes
 
-As you know InfluxDB is one of the main componenet in TIG stakc, we will deploy this first, but before we deploy, we need to look at the K8s resources we need to run a InfluxDB container in Kubernestes.
+As you know InfluxDB is one of the main componenet in TIG stakc, we will deploy this first, but before we deploy, we need to look at the K8s resources we need to setup a InfluxDB container in Kubernestes.
 
 - SecretMap: To store the InfluxDB name, credentials, etc. It keeps the data in base64 encode.
 - ConfigMap: Create a config for influxdb config and service
@@ -104,16 +104,16 @@ I like to create configuration files, so I can reuse them for other deployments.
 >   --from-literal=INFLUXDB_HOST=influxdb  \
 >   --from-literal=INFLUXDB_HTTP_AUTH_ENABLED=true \
 >   --from-literal=INFLUXDB_CONFIG_PATH=/etc/influxdb/influxdb.conf \
->   --dry-run=client -o yaml > influxdb-secret.yaml
+>   --dry-run=client -o yaml > influxdb-secretMap.yaml
 (main) expert@expert-cws:~/mdt-tig-k8s$ ls -l
 total 4
--rw-rw-r-- 1 expert expert 388 Sep 24 19:10 influxdb-secret.yaml
+-rw-rw-r-- 1 expert expert 388 Sep 24 19:10 influxdb-secretMap.yaml
 (main) expert@expert-cws:~/mdt-tig-k8s$
 ```
 
 You can also run `$ kubectl get secrets -o yaml > influxdb-secretMap.yaml` if you have previously created a secret map and edit the file as needed.
 
-Choose your favourtie editor and check the file contents. 
+Choose your favourite editor and check the file contents. 
 
 ```yaml
 apiVersion: v1
@@ -144,7 +144,7 @@ devnet-namespace
 (main) expert@expert-cws:~/minikube-k8s-devnet$ 
 ```
 
-Influxdb SecretMap
+influxdb-secretMap.yaml
 
 ```yaml
 apiVersion: v1
@@ -164,7 +164,7 @@ metadata:
   namespace: devnet-namespace
 ```
 
-Let's create secretMap using this file called 'influxdb-secretMap.yaml'
+Let's create secretMap using this file 'influxdb-secretMap.yaml'
 
 ```bash
 (main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f influxdb-secretMap.yaml
@@ -203,7 +203,7 @@ You can also use `$ kubectl get secrets -o yaml` to see the output in yaml forma
 
 #### Create InfluxDB ConfigMap
 
-Influxdb ConfigMap
+influxdb-configMap.yaml 
 
 ```yaml
 ---
@@ -231,7 +231,7 @@ kube-root-ca.crt   1      3d2h
 
 #### Create InfluxDB PersistentVolume, PersistentVolumeClaim, StorageClass
 
-Influxdb PersistentVolume (optional in this case)
+influxdb-pv.yaml (optional in this case)
 
 ```yaml
 ---
@@ -250,7 +250,7 @@ spec:
     path: storage/data
 ```
 
-Influxdb StorageClass (optional in this case)
+influxdb-storageClass.yaml (optional in this case)
 
 ```yaml
 ---
@@ -263,9 +263,9 @@ volumeBindMode: Immediate
 reclaimPolicy: Delete
 ```
 
-Note: Storage Class and Persistent Volume are not in the namespace and they live outside the cluster. It is also optional in this case as when we create PVC, it will automatically creates a PV in the minikube.
+Note: Storage Class and Persistent Volume Claim are not in the namespace and they live outside the cluster. It is also optional in this case as when we create PVC, it will automatically creates a PV in the minikube.
 
-Influxdb PersistentVolumeClaim
+influxdb-pvc.yaml
 
 ```yaml
 ---
@@ -357,7 +357,7 @@ docker@minikube:~$
 
 #### Create InfluxDB Deployment
 
-Influxdb Deployment
+influxdb-deployment.yaml
 
 ```yaml
 ---
@@ -453,6 +453,8 @@ bind-address = "127.0.0.1:8088"
 ... omitted
 ```
 
+Try login to the databse in this container with the credentials we defined in influxdb-secretMap.yaml
+
 `influx --username root --password telegraf`
 
 ```bash
@@ -471,11 +473,11 @@ Using database cisco_mdt
 > 
 ```
 
-As you can see, we are successfully login to the influxDB with the root credentials and database exists. 
+As you can see, we are successfully login to the influxDB with the root credentials and database `cisco_mdt` exists. 
 
 #### Create InfluxDB Service
 
-Influxdb Service
+influxdb-service.yaml
 
 ```yaml
 ---
@@ -492,10 +494,6 @@ spec:
       targetPort: 8086
       # nodePort: 32000 # set this if you have LoadBalancer service type
   type: ClusterIP # can be LoadBalancer, if you are running in the cloud
-```
-
-```s
-kubectl expose deployment influxdb-service --port=8086 --target-port=8086 --protocol=TCP --type=ClusterIP
 ```
 
 ```bash
@@ -525,6 +523,12 @@ Events:            <none>
 (main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 ```
 
+or you can expose it via kubectl command line 
+
+```s
+kubectl expose deployment influxdb-service --port=8086 --target-port=8086 --protocol=TCP --type=ClusterIP
+```
+
 ## Telegraf POD Setup in Kubernetes
 
 Telegraf is a collector in TIG stack, that needs to connect to InfluxDB to send the collected logs to be stored in time series database. 
@@ -534,7 +538,7 @@ Like InfluxDB, we will need the following resources or objects.
 - SecretMap: For InfluxDB address/name and credentials to connect to InfluxDB (optional)
 - ConfigMap
 - Deployment
-- Service
+- Service (Optional)
 
 You may need to expose this service on Minikube so that it can be accessible from outside the cluster, otherwise it will only be accessible inside the cluster.
 
@@ -542,7 +546,7 @@ You may need to expose this service on Minikube so that it can be accessible fro
 
 You can either create a new SecretMap for Telegraf or use the InfluxDB secretMap in the Telegraf deployment file. See the Telegraf Deployment section.
 
-Telegraf SecretMap
+telegraf-secretMap.yaml
 
 ```yaml
 ---
@@ -562,6 +566,8 @@ stringData:
 #### Create Telegraf ConfigMap
 
 You can define your telegraf.conf in the ConfigMap object. 
+
+telegraf-configMap.yaml
 
 ```yaml
 ---
@@ -648,7 +654,7 @@ telegraf.conf:
 [[outputs.influxdb]]
   database = "cisco_mdt"
   urls = [ "http://influxdb-service:8086" ]
-  username = "admin"
+  username = "root"
   password = "telegraf"
 
 # Telegraf log file 
@@ -665,7 +671,9 @@ Events:  <none>
 
 #### Create Telegraf DaemonSet
 
-We will create DaemonSet instead of Deployment resource as one of the benefit of using DaemonSet is that, it will create a POD automatically when a new node is added to the cluster. However you can still use deployment as well as we are only using minikube with a single node. 
+We will create a DaemonSet instead of Deployment resource as one of the benefit of using DaemonSet is that, it will create a POD automatically when a new node is added to the cluster. However you can still use deployment as well, since we are only using minikube with a single node. 
+
+telegraf-daemonSet.yaml
 
 ```yaml
 ---
@@ -691,6 +699,9 @@ spec:
       containers:
         - name: telegraf
           image: docker.io/telegraf:1.19.0
+          ports:
+            - containerPort: 57000
+              protocol: TCP
         # envFrom: # if you like to use Telgraf SecretMap instead of InfluxDB SecretMap
         #   - secretRef:
         #       name: telegraf-secrets
@@ -765,7 +776,7 @@ Looks I assinged the wrong user 'admin' in the above ConfigMap for Telegraf, I j
 Here is what I did to fix the issue
 
 - Delete the configMap 
-- Changed the admin user to root user 
+- Changed the admin user to root user in the telegraf-configMap.yaml
 - Delete old pod 
 - Create new configMap 
 - Create new POD for Telegraf
@@ -786,7 +797,7 @@ configmap/telegraf-config created
 daemonset.apps/telegraf unchanged
 ```
 
-Now no more errors are seen in the telegraf pod log
+Now, no more errors are seen in the telegraf pod log
 
 ```bash
 (main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods
@@ -806,15 +817,35 @@ telegraf-tcsb8              1/1     Running   0          55s
 (main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 ```
 
+#### Create Telegraf Service
+
 if you have created a deployment, you can expose the port by create a service as below
 
 ```s
-kubectl expose deployment telegraf --port=8125 --target-port=8125 --protocol=UDP --type=NodePort --dry-run=client -o yaml > telegraf-service.yaml
+kubectl expose deployment telegraf --port=57000 --target-port=57000 --protocol=TCP --type=LoadBalancer --name=telegraf-service
 ```
 
-```s
-kubectl expose deployment telegraf --port=8125 --target-port=8125 --protocol=UDP --type=NodePort
+or create a telegraf-service.yaml
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: devnet-namespace
+  name: telegraf-service
+spec:
+  selector:
+    app: telegraf
+  ports:
+    - protocol: TCP
+      port: 57000
+      targetPort: 57000
+      nodePort: 35000
+  type: LoadBalancer
 ```
+
+`kubectl apply -f telegraf-service.yaml`
 
 ## Grafana POD Setup in Kubernetes
 
@@ -871,6 +902,8 @@ kubectl create secret generic grafana-secrets \
 
 #### Create Grafana PersistentVolumeClaim
 
+grafana-pvc.yaml
+
 ```yaml
 ---
 apiVersion: v1
@@ -888,10 +921,44 @@ spec:
       storage: 2Gi
 ```
 
-kubectl apply -f grafana-pvc.yaml
+`kubectl apply -f grafana-pvc.yaml`
 
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f grafana-pvc.yaml
+persistentvolumeclaim/grafana-pvc created
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pvc
+NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+grafana-pvc    Bound    pvc-c815d9de-0b94-41eb-85cb-df201f2f2834   2Gi        RWO            standard       8s
+influxdb-pvc   Bound    pvc-667d5801-a3c8-4083-a4fb-c6921fae4aed   5Gi        RWO            standard       11h
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe pvc grafana-pvc
+Name:          grafana-pvc
+Namespace:     devnet-namespace
+StorageClass:  standard
+Status:        Bound
+Volume:        pvc-c815d9de-0b94-41eb-85cb-df201f2f2834
+Labels:        app=grafana-pvc
+Annotations:   pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: k8s.io/minikube-hostpath
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      2Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Used By:       <none>
+Events:
+  Type    Reason                 Age                From                                                                    Message
+  ----    ------                 ----               ----                                                                    -------
+  Normal  ExternalProvisioning   21s (x2 over 21s)  persistentvolume-controller                                             waiting for a volume to be created, either by external provisioner "k8s.io/minikube-hostpath" or manually created by system administrator
+  Normal  Provisioning           21s                k8s.io/minikube-hostpath_minikube_7a739d17-dda2-4fa6-bc66-95604b637c63  External provisioner is provisioning volume for claim "devnet-namespace/grafana-pvc"
+  Normal  ProvisioningSucceeded  21s                k8s.io/minikube-hostpath_minikube_7a739d17-dda2-4fa6-bc66-95604b637c63  Successfully provisioned volume pvc-c815d9de-0b94-41eb-85cb-df201f2f2834
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe pvc grafana-pvc
+```
 
 #### Create Grafana Deployment
+
+grafana-deployment.yaml
 
 ```yaml
 ---
@@ -918,10 +985,9 @@ spec:
         app: grafana
     spec:
       containers:
-        restartPolicy: Always
         - name: grafana
-            image: docker.io/grafana/grafana:8.1.0-ubuntu
-            imagePullPolicy: IfNotPresent
+          image: docker.io/grafana/grafana:8.1.0-ubuntu
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
               protocol: TCP
@@ -933,16 +999,96 @@ spec:
               mountPath: /var/lib/grafana/
       securityContext:
         fsGroup: 472      
-    volumes:
-      - name: grafana-data
-        persistentVolumeClaim:
-          claimName: grafana-pvc
+      volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: grafana-pvc
 ```
 
-kubectl apply -f grafana-deployment.yaml
+`kubectl apply -f grafana-deployment.yaml`
 
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f grafana-deployment.yaml
+deployment.apps/grafana created
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods
+NAME                        READY   STATUS              RESTARTS   AGE
+grafana-86bd9749bf-2bsp5    0/1     ContainerCreating   0          3s
+influxdb-5d65548dc5-r84fk   1/1     Running             0          90m
+telegraf-tcsb8              1/1     Running             0          64m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+grafana-86bd9749bf-2bsp5    1/1     Running   0          65s
+influxdb-5d65548dc5-r84fk   1/1     Running   0          91m
+telegraf-tcsb8              1/1     Running   0          65m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe pod grafana-86bd9749bf-2bsp5
+Name:         grafana-86bd9749bf-2bsp5
+Namespace:    devnet-namespace
+Priority:     0
+Node:         minikube/192.168.49.2
+Start Time:   Mon, 26 Sep 2022 12:33:16 +0000
+Labels:       app=grafana
+              pod-template-hash=86bd9749bf
+Annotations:  <none>
+Status:       Running
+IP:           172.17.0.7
+IPs:
+  IP:           172.17.0.7
+Controlled By:  ReplicaSet/grafana-86bd9749bf
+Containers:
+  grafana:
+    Container ID:   docker://e6390ccec3455ad8bef5199a2d3d5f5cbb9b0f2b043e80699284116a984876b7
+    Image:          docker.io/grafana/grafana:8.1.0-ubuntu
+    Image ID:       docker-pullable://grafana/grafana@sha256:dfbf1390df43108a1f458cb58f3cc4e75cecb192d24a7e76f7ac1ee4fa98f577
+    Port:           3000/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Mon, 26 Sep 2022 12:33:46 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment Variables from:
+      grafana-secrets  Secret  Optional: false
+    Environment:       <none>
+    Mounts:
+      /var/lib/grafana/ from grafana-data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-rks2l (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  grafana-data:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  grafana-pvc
+    ReadOnly:   false
+  kube-api-access-rks2l:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  2m34s  default-scheduler  Successfully assigned devnet-namespace/grafana-86bd9749bf-2bsp5 to minikube
+  Normal  Pulling    2m32s  kubelet            Pulling image "docker.io/grafana/grafana:8.1.0-ubuntu"
+  Normal  Pulled     2m5s   kubelet            Successfully pulled image "docker.io/grafana/grafana:8.1.0-ubuntu" in 27.058709175s
+  Normal  Created    2m5s   kubelet            Created container grafana
+  Normal  Started    2m4s   kubelet            Started container grafana
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
 
 #### Create Grafana Service
+
+grafana-service.yaml
 
 ```yaml
 apiVersion: v1
@@ -953,18 +1099,168 @@ metadata:
 spec:
   selector:
     app: grafana
-  type: NodePort
   ports:
     - protocol: TCP
       port: 3000
       targetPort: 3000
       nodePort: 30000
+  type: NodePort
 ```
 
-kubectl apply -f grafana-service.yaml
+`kubectl apply -f grafana-service.yaml`
+
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f grafana-service.yaml 
+service/grafana-service created
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get services
+NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+grafana-service    NodePort    10.99.25.139     <none>        3000:30000/TCP   7s
+influxdb-service   ClusterIP   10.106.144.201   <none>        8086/TCP         86m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe services grafana-service
+Name:                     grafana-service
+Namespace:                devnet-namespace
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=grafana
+Type:                     NodePort
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.99.25.139
+IPs:                      10.99.25.139
+Port:                     <unset>  3000/TCP
+TargetPort:               3000/TCP
+NodePort:                 <unset>  30000/TCP
+Endpoints:                172.17.0.7:3000
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
+
+Check the minikube service list, so you can get the url to accesss the grafana 
+
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ minikube service list
+|----------------------|---------------------------|--------------|---------------------------|
+|      NAMESPACE       |           NAME            | TARGET PORT  |            URL            |
+|----------------------|---------------------------|--------------|---------------------------|
+| default              | kubernetes                | No node port |
+| devnet-namespace     | grafana-service           |         3000 | http://192.168.49.2:30000 |
+| devnet-namespace     | influxdb-service          | No node port |
+| kube-system          | kube-dns                  | No node port |
+| kubernetes-dashboard | dashboard-metrics-scraper | No node port |
+| kubernetes-dashboard | kubernetes-dashboard      | No node port |
+|----------------------|---------------------------|--------------|---------------------------|
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ minikube ip
+192.168.49.2
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
+
+Let's login go the Grafana via Minikube IP (192.168.49.2) and the NodePort 30000 (http://192.168.49.2:30000)
+
+![App Screenshot](../../images/grafana_login_page.png)
+
+Add the InfluxDB database as a source and test if it is working as expected. 
+
+![App Screenshot](../../images/add_influxdb_grafana_1.png)
+
+![App Screenshot](../../images/add_influxdb_grafana_2.png)
+
+![App Screenshot](../../images/test_influxdb_grafana.png)
 
 
-kubectl expose deployment grafana --type=LoadBalancer --port=3000 --target-port=3000 --protocol=TCP
+If you are using a cloud platform, you can use the `LoadBalancer` service type as below; 
 
-minikube service grafana --namespace devnet-namespace
+`kubectl expose deployment grafana --type=LoadBalancer --port=3000 --target-port=3000 --protocol=TCP`
 
+If you use `LoadBalancer` service type in Minikube and like to access in Minikube, you can run the following command which act as nodePort service type.
+
+`minikube service grafana --namespace devnet-namespace`
+
+## Verify all the K8s resources for Influxdb, Telegraf and Grafana
+
+Here are all the resources/object we have created for TIG Stack.
+
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+grafana-86bd9749bf-2bsp5    1/1     Running   0          7m23s
+influxdb-5d65548dc5-r84fk   1/1     Running   0          98m
+telegraf-tcsb8              1/1     Running   0          72m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get replicasets
+NAME                  DESIRED   CURRENT   READY   AGE
+grafana-86bd9749bf    1         1         1       10h
+influxdb-5d65548dc5   1         1         1       12h
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get services
+NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+grafana-service    NodePort    10.99.25.139     <none>        3000:30000/TCP   3h28m
+influxdb-service   ClusterIP   10.106.144.201   <none>        8086/TCP         4h55m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get deployments
+NAME       READY   UP-TO-DATE   AVAILABLE   AGE
+grafana    1/1     1            1           3h32m
+influxdb   1/1     1            1           5h3m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get daemonsets
+NAME       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+telegraf   1         1         1       1            1           <none>          4h49m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get configmaps
+NAME               DATA   AGE
+influxdb-config    2      14h
+kube-root-ca.crt   1      3d18h
+telegraf-config    1      4h37m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get secrets
+NAME                  TYPE                                  DATA   AGE
+default-token-jwxp7   kubernetes.io/service-account-token   3      3d18h
+grafana-secrets       Opaque                                2      4h21m
+influxdb-secrets      Opaque                                8      15h
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                           STORAGECLASS   REASON   AGE
+pvc-667d5801-a3c8-4083-a4fb-c6921fae4aed   5Gi        RWO            Delete           Bound    devnet-namespace/influxdb-pvc   standard                15h
+pvc-c815d9de-0b94-41eb-85cb-df201f2f2834   2Gi        RWO            Delete           Bound    devnet-namespace/grafana-pvc    standard                3h39m
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pvc
+NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+grafana-pvc    Bound    pvc-c815d9de-0b94-41eb-85cb-df201f2f2834   2Gi        RWO            standard       3h39m
+influxdb-pvc   Bound    pvc-667d5801-a3c8-4083-a4fb-c6921fae4aed   5Gi        RWO            standard       15h
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get pods --all-namespaces
+NAMESPACE              NAME                                         READY   STATUS    RESTARTS       AGE
+devnet-namespace       grafana-86bd9749bf-2bsp5                     1/1     Running   0              3h43m
+devnet-namespace       influxdb-5d65548dc5-r84fk                    1/1     Running   0              5h14m
+devnet-namespace       telegraf-tcsb8                               1/1     Running   0              4h48m
+kube-system            coredns-78fcd69978-l42mf                     1/1     Running   1 (4d5h ago)   34d
+kube-system            etcd-minikube                                1/1     Running   1 (4d5h ago)   34d
+kube-system            kindnet-qrc4w                                1/1     Running   1 (4d5h ago)   31d
+kube-system            kube-apiserver-minikube                      1/1     Running   1 (4d5h ago)   34d
+kube-system            kube-controller-manager-minikube             1/1     Running   1 (4d5h ago)   34d
+kube-system            kube-proxy-mnbvb                             1/1     Running   1 (4d5h ago)   34d
+kube-system            kube-scheduler-minikube                      1/1     Running   1 (4d5h ago)   34d
+kube-system            storage-provisioner                          1/1     Running   3 (4d5h ago)   34d
+kubernetes-dashboard   dashboard-metrics-scraper-5594458c94-kzxmj   1/1     Running   1 (4d5h ago)   31d
+kubernetes-dashboard   kubernetes-dashboard-654cf69797-rf7kd        1/1     Running   1 (4d5h ago)   31d
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~$ kubectl get services kube-dns --namespace=kube-system
+NAME       TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   35d
+(main) expert@expert-cws:~$ 
+
+(main) expert@expert-cws:~$ kubectl get ep grafana-service
+NAME              ENDPOINTS         AGE
+grafana-service   172.17.0.7:3000   20h
+
+(main) expert@expert-cws:~$ kubectl get ep influxdb-service
+NAME               ENDPOINTS         AGE
+influxdb-service   172.17.0.5:8086   22h
+```

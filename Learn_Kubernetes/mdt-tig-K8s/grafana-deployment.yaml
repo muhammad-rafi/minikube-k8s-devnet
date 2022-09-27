@@ -22,10 +22,9 @@ spec:
         app: grafana
     spec:
       containers:
-        restartPolicy: Always
         - name: grafana
-            image: docker.io/grafana/grafana:8.1.0-ubuntu
-            imagePullPolicy: IfNotPresent
+          image: docker.io/grafana/grafana:8.1.0-ubuntu
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
               protocol: TCP
@@ -37,8 +36,8 @@ spec:
               mountPath: /var/lib/grafana/
       securityContext:
         fsGroup: 472      
-    volumes:
-      - name: grafana-data
-        persistentVolumeClaim:
-          claimName: grafana-pvc
+      volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: grafana-pvc
           

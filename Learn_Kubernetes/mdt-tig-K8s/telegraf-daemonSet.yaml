@@ -21,6 +21,9 @@ spec:
       containers:
         - name: telegraf
           image: docker.io/telegraf:1.19.0
+          ports:
+            - containerPort: 57000
+              protocol: TCP
           # envFrom: # if you like to use Telgraf SecretMap instead of InfluxDB SecretMap
           #   - secretRef:
           #       name: telegraf-secrets
