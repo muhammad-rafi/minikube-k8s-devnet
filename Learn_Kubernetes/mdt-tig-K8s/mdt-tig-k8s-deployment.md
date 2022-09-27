@@ -1,4 +1,6 @@
-# Telegraf, InfluxDB, & Grafana (TIG) Stack on Kubernetes
+# TIG (Telegraf, InfluxDB & Grafana) Stack on Kubernetes
+
+I will be deploying the following PODs along with their services.
 
 - InfluxDB -v1.8
 - Telegraf - v1.19
