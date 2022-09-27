@@ -4,7 +4,7 @@
 - Telegraf - v1.19
 - Grafana - v8.1
 
-### Create a new folder for configuration (menifest) files.
+### Create a new folder for configuration (menifest) files
 
 Let's create a new folder and `cd` into it, where we can put all the required Kubernetes configuration files to successfully run the TIG stack for model driven telemetry with Cisco devices.
 
@@ -685,9 +685,6 @@ metadata:
   labels:
     app: telegraf
 spec:
-  replicas: 1
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app: telegraf
@@ -751,6 +748,43 @@ NAME                        READY   STATUS    RESTARTS   AGE
 influxdb-5d65548dc5-r84fk   1/1     Running   0          16m
 telegraf-mwfsb              1/1     Running   0          2m9s
 (main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe ds telegraf
+Name:           telegraf
+Selector:       app=telegraf
+Node-Selector:  <none>
+Labels:         app=telegraf
+Annotations:    deprecated.daemonset.template.generation: 2
+Desired Number of Nodes Scheduled: 1
+Current Number of Nodes Scheduled: 1
+Number of Nodes Scheduled with Up-to-date Pods: 1
+Number of Nodes Scheduled with Available Pods: 1
+Number of Nodes Misscheduled: 0
+Pods Status:  1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=telegraf
+  Containers:
+   telegraf:
+    Image:      docker.io/telegraf:1.19.0
+    Port:       57000/TCP
+    Host Port:  0/TCP
+    Environment:
+      INFLUXDB_ADMIN_USER:      <set to the key 'INFLUXDB_ADMIN_USER' in secret 'influxdb-secrets'>      Optional: false
+      INFLUXDB_ADMIN_PASSWORD:  <set to the key 'INFLUXDB_ADMIN_PASSWORD' in secret 'influxdb-secrets'>  Optional: false
+      INFLUXDB_HOST:            <set to the key 'INFLUXDB_HOST' in secret 'influxdb-secrets'>            Optional: false
+      INFLUXDB_DB:              <set to the key 'INFLUXDB_DB' in secret 'influxdb-secrets'>              Optional: false
+    Mounts:
+      /etc/telegraf/telegraf.conf from telegraf-config (ro,path="telegraf.conf")
+  Volumes:
+   telegraf-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      telegraf-config
+    Optional:  false
+Events:
+  Type    Reason            Age   From                  Message
+  ----    ------            ----  ----                  -------
+  Normal  SuccessfulDelete  93s   daemonset-controller  Deleted pod: telegraf-tcsb8
+  Normal  SuccessfulCreate  92s   daemonset-controller  Created pod: telegraf-ls55w
 ```
 
 Check the logs if you see any errors 
@@ -841,12 +875,43 @@ spec:
     - protocol: TCP
       port: 57000
       targetPort: 57000
-      nodePort: 35000
+      nodePort: 32000
   type: LoadBalancer
 ```
 
 `kubectl apply -f telegraf-service.yaml`
 
+```bash
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl apply -f telegraf-service.yaml 
+service/telegraf-service created
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$
+
+main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl describe service telegraf-service
+Name:                     telegraf-service
+Namespace:                devnet-namespace
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=telegraf
+Type:                     LoadBalancer
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.110.139.108
+IPs:                      10.110.139.108
+Port:                     <unset>  57000/TCP
+TargetPort:               57000/TCP
+NodePort:                 <unset>  32000/TCP
+Endpoints:                172.17.0.6:57000
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get service 
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
+influxdb-service   ClusterIP      10.106.144.201   <none>        8086/TCP          24h
+telegraf-service   LoadBalancer   10.110.139.108   <pending>     57000:32000/TCP   4s
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
+```
 ## Grafana POD Setup in Kubernetes
 
 Grafana is the final peiece in TIG stack and will again require following K8s componenets
@@ -1149,6 +1214,7 @@ Check the minikube service list, so you can get the url to accesss the grafana
 | default              | kubernetes                | No node port |
 | devnet-namespace     | grafana-service           |         3000 | http://192.168.49.2:30000 |
 | devnet-namespace     | influxdb-service          | No node port |
+| devnet-namespace     | telegraf-service          |        57000 | http://192.168.49.2:32000 |
 | kube-system          | kube-dns                  | No node port |
 | kubernetes-dashboard | dashboard-metrics-scraper | No node port |
 | kubernetes-dashboard | kubernetes-dashboard      | No node port |
@@ -1197,10 +1263,12 @@ grafana-86bd9749bf    1         1         1       10h
 influxdb-5d65548dc5   1         1         1       12h
 (main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 
-(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get services
-NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
-grafana-service    NodePort    10.99.25.139     <none>        3000:30000/TCP   3h28m
-influxdb-service   ClusterIP   10.106.144.201   <none>        8086/TCP         4h55m
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get service 
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
+grafana-service    NodePort       10.99.25.139     <none>        3000:30000/TCP    22h
+influxdb-service   ClusterIP      10.106.144.201   <none>        8086/TCP          24h
+telegraf-service   LoadBalancer   10.110.139.108   <pending>     57000:32000/TCP   4s
+(main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ 
 
 (main) expert@expert-cws:~/minikube-k8s-devnet/Learn_Kubernetes/mdt-tig-K8s$ kubectl get deployments
 NAME       READY   UP-TO-DATE   AVAILABLE   AGE

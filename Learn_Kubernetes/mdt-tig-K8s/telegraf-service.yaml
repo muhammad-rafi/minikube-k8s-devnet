@@ -11,5 +11,5 @@ spec:
     - protocol: TCP
       port: 57000
       targetPort: 57000
-      nodePort: 35000
+      nodePort: 32000
   type: LoadBalancer

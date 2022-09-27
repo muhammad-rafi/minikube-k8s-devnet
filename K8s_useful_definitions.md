@@ -44,6 +44,16 @@ A DaemonSet ensures that all (or some) Nodes run a copy of a Pod. As nodes are a
 An abstract way to expose an application running on a set of Pods as a network service.
 With Kubernetes you don't need to modify your application to use an unfamiliar service discovery mechanism. Kubernetes gives Pods their own IP addresses and a single DNS name for a set of Pods, and can load-balance across them.
 
+There are four type of Kubernetes services available.
+
+- ClusterIP: Default type of service in Kubernetes, which can be accessed by other applications inside the cluster, no external access.
+
+- NodePort: NodePort exposes the service on each Node’s IP at a static port range between 30000–32767. This service cannot be accessed from the cluster IP.
+
+- LoadBalancer: It is an extension of NodePort service, it can be accessed over the internet, if you are using Cloud e.g. GKE, EKS, AKS etc. A LoadBalancer can also be accessed in the same way as a ClusterIP or NodePort.
+
+- ExternalName: ExternalName map a Service to a DNS name via CNAME defined in the externalName: parameter.
+
 ### Ingress
 An API object that manages external access to the services in a cluster, typically HTTP. Ingress may provide load balancing, SSL termination and name-based virtual hosting. Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource.
 
