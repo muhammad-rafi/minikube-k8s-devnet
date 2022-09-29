@@ -1,3 +1,5 @@
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/muhammad-rafi/minikube-k8s-devnet)
+
 # Kubernetes with Minikube for DevNet Expert
 
 ## Introduction
